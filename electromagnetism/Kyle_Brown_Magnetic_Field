@@ -1,0 +1,81 @@
+from visual import *
+
+# Variable definitions
+pi = 3.14159265259
+mu0 = 4*pi*1e-7 # Magnetic permeability
+Bscale = 1.2e5# Scale factor for arrows
+R = 0.01# Radius of current loop
+I = 1.0# Current in loop
+proton = sphere(pos = vector(0.05, 0.03, 0.01), radius = 0.003, color = vector(0, 1, 1), charge = 1.6e-19, m = 1.7e-27, p = vector(-5e-28, -5e-28, 5e-29), trail = curve(color = vector(1, 1, 1)))
+
+loop = ring(pos=vector(0,0,0), axis=vector(1,0,0), radius=R, thickness=0.001)
+
+locations = [ ] # List of locations to calculate the field at
+arrows = [ ] # List of arrows to plot
+dtheta = pi/6. # Angle intervals between points
+dphi = pi/6.
+dRo = .02# Radius of the sphere of arrows
+
+
+# Define the set of locations for mapping the magnetic field
+for Ro in arange(6*R, 18*R+dRo, dRo):
+    for theta in arange(0, pi+dtheta, dtheta):
+        x = Ro*cos(theta)
+        y = Ro*sin(theta)
+        z=0
+        a = vector(x, y, z)
+        for phi in arange(0, 2*pi, dphi):
+            b = rotate(a, angle = phi, axis = vector(1,0,0))
+            if b not in locations:
+                locations.append(vector(b.x, b.y, b.z))
+
+# Define a set of default arrows for the field
+'''for point in locations:
+    arrows.append(arrow(pos = point, axis = vector(0.01, 0, 0), color = color.magenta, shaftwidth = 0.002))'''
+
+
+# Calculating the magnetic field
+dalpha = pi/10
+#dlarrow = arrow(pos = vector(0,0,0), axis = vector(0,0,0), color = color.red, shaftwidth = 0.005)
+#rarrow = arrow(pos = vector(0,0,0), axis = vector(0,0,0), color = color.green, shaftwidth = 0.005)
+
+for Barrow in arrows:
+    B = vector(0,0,0)
+    for alpha in arange(0, 2*pi, dalpha):
+        c = vector(0, R*cos(alpha), R*sin(alpha))
+        d = vector(0, R*cos(alpha+dalpha), R*sin(alpha+dalpha))
+        dl = d-c
+        #dlarrow.pos = c
+        #dlarrow.axis = dl
+        r = Barrow.pos - c
+        #rarrow.pos = dlarrow.pos
+        #rarrow.axis = r
+        dB=(mu0*I*cross(dl,norm(r)))/(4*pi*mag(r)**2)
+        B= B + dB
+    Barrow.axis = B*Bscale
+    #print mag(Barrow.axis)
+
+# Particle dynamics
+dt = .001
+t=0
+while t < 2:
+    rate(50)
+    t = t+dt
+    B = vector(0,0,0)
+    for alpha in arange(0, 2*pi, dalpha):
+        c = vector(0,R*cos(alpha), R*sin(alpha))
+        d = vector(0,R*cos(alpha+dalpha), R*sin(alpha+dalpha))
+        dl = d-c
+        #dlarrow.pos = c
+        #dlarrow.axis = dl
+        r = proton.pos - c
+        #rarrow.pos = dlarrow.pos
+        #rarrow.axis = r
+        dB=(mu0*I*cross(dl,norm(r)))/(4*pi*mag(r)**2)
+        B= B + dB
+        v=proton.p/proton.m
+        F=proton.charge*cross(v,B)
+    proton.p = proton.p + F*dt
+    proton.pos = proton.pos + (proton.p/proton.m)*dt
+    proton.trail.append(proton.pos)
+

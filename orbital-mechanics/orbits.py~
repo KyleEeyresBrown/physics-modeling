@@ -1,0 +1,24 @@
+from __future__ import division
+from visual import *
+Sun = sphere(pos=vector(0,0,0), radius=1e10, color=color.yellow)
+Earth = sphere(pos=vector(1.5e11,0,0), radius=5e9, color=color.green)
+scene.autoscale = 0
+G=6.67e-11
+Sun.m = 1.989e30
+Earth.m = 5.972e24
+Sun.p = vector(0,0,0)
+Earth.p = vector(0,1.1944e29,0)
+r=9e7
+Earth.trail = curve(color=Earth.color)
+deltat = 86400
+t=0
+while 1:#t < 9.5e7:
+    rate(100)
+    F=(G*Sun.m*Earth.m)/(r*r)
+    a=F/Earth.m
+    Earth.p = Earth.p+F*deltat
+    Earth.pos = Earth.pos+Earth.p*deltat/Earth.m
+    #Earth.trail.append(pos=Earth.pos)
+    t=t+deltat
+
+    
